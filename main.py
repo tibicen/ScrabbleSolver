@@ -235,6 +235,7 @@ class ScrabbleSolver(App):
 
     def on_resume(self):
         pass
+        # fun fun fun
 
 
 if __name__ == '__main__':
