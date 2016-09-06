@@ -107,7 +107,7 @@ Builder.load_string('''
 ''')
 
 
-def dbgPrint(str):
+def printDbg(str):
     if DEBUG:
         print(str)
 
@@ -135,7 +135,7 @@ class chooseWords(threading.Thread):
                 self.bestWords.append((word, score))
         wordsStr = ''
         if self.bestWords:
-            # dbgPrint(self.bestWords)
+            # printDbg(self.bestWords)
             for w in reversed(self.bestWords[-7:]):
                 wordsStr += w[0] + ', ' + str(w[1]) + 'pt' '\n'
             self.opis.text = (
@@ -187,8 +187,8 @@ class RootWidget(BoxLayout):
             self.opis.text = 'Obliczanie... \n\nCzekaj'
             wordlists = self.wordlist[:lettersNr - 2]
             crpWordlist = list(merge(*wordlists))
-            dbgPrint('zwierzę' in crpWordlist)
-            dbgPrint(len(wordlists) + 2)
+            printDbg('zwierzę' in crpWordlist)
+            printDbg(len(wordlists) + 2)
             # TODO implement thread search
             work = chooseWords(self, crpWordlist, lettersNr + 1,
                                lambda x: Clock.schedule_once(
@@ -200,7 +200,7 @@ class RootWidget(BoxLayout):
         self.ltrVals = letterValues(PUNKTACJA)
         self.wordlist = loadWords(DICTIONARY)
         self.BAZY = True
-        dbgPrint('imported %d words.' % len(list(merge(*self.wordlist))))
+        printDbg('imported %d words.' % len(list(merge(*self.wordlist))))
 
     def update_bar(self, wordlistLen, dt=None):
         '''
@@ -215,7 +215,7 @@ class RootWidget(BoxLayout):
             self.prog.value = 0
         else:
             self.prog.value = self.prog.value + (100 / wordlistLen)
-            # dbgPrint('%.2f' % (self.prog.value))
+            # printDbg('%.2f' % (self.prog.value))
             # dumps weaker words
             self.bestWords = self.bestWords[-15:]
             self.bestWords = sorted(self.bestWords, key=lambda x: x[1])
