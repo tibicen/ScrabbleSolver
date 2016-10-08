@@ -9,7 +9,8 @@ LETTERS_DICT = {'a': 9, 'ą': 1, 'b': 2, 'c': 3, 'ć': 1, 'd': 3,
                 'ń': 1, 'o': 6, 'ó': 1, 'p': 3, 'r': 4, 's': 4,
                 'ś': 1, 't': 3, 'u': 2, 'w': 4, 'y': 4, 'z': 5,
                 'ź': 1, 'ż': 1}
-LETTERS = ''.join([k*v for k,v in LETTERS_DICT.items()])
+LETTERS = ''.join([k * v for k, v in LETTERS_DICT.items()])
+
 
 def merge(*iters):
     result = []
@@ -32,35 +33,6 @@ def loadWords(filename):
     return wordList
 
 
-# def loadWords_deprecated(filename):
-#     """
-#     Returns a list of valid words. Words are strings of lowercase letters.
-#
-#     Depending on the size of the word list, this function may
-#     take a while to finish.
-#     wordList: list of list of strings sorted in words length
-#     """
-#     # inFile = open(filename, 'r', encoding='utf-8')
-#
-#     wordList = []
-#     with open(filename, 'r', encoding='utf-8') as inFile:
-#         for line in inFile:
-#             wordList.append(line.strip().rstrip('\n'))
-#     dictPL = {}
-#     for nr, w in enumerate(wordList):
-#         wSize = len(w)
-#         if wSize in dictPL.keys():
-#             dictPL[wSize].append(w)
-#         else:
-#             dictPL[wSize] = [w]
-#     wordList = [v for k, v in sorted(dictPL.items(),
-#                 key=lambda x: x[0], reverse=True)]
-#     # wordList.sort()
-#     return wordList
-
-
-
-
 def letterValues(filename):
     '''
     returns: dict with letter Values for Scrabble
@@ -74,7 +46,6 @@ def letterValues(filename):
         for l in Linenr[1].split(','):
             ltrVals[l] = int(Linenr[0])
     return ltrVals
-
 
 
 def getFrequencyDict(sequence):
@@ -135,7 +106,6 @@ def isValidW(word, hand):
     return True
 
 
-
 def cleanWordList(wordlist):
     st = len(wordlist)
     print('zaladowano: %d' % st)
@@ -145,7 +115,6 @@ def cleanWordList(wordlist):
         if nr % int(len(wordlist) / 10000) == 0:
             pass
             print('\r{:.2f}%'.format(100 * nr / len(wordlist)), end='')
-            # print('\r%.2f%%' % (100 * nr / len(wordlist)), end='')
         boo = True
         if len(w) < 3:
             boo = False
@@ -170,7 +139,6 @@ def cleanWordList(wordlist):
     for nr, w in enumerate(wordlist):
         if nr % int(len(wordlist) / 10000) == 0:
             print('\r{:.2f}%'.format(100 * nr / len(wordlist)), end='')
-            # print('\r%.2f%%' % (100 * nr / len(wordlist)), end='')
         if w not in wordlist2[-1000:]:
             wordlist2.append(w)
         else:
@@ -179,7 +147,6 @@ def cleanWordList(wordlist):
     print('zostalo: %d' % (len(wordlist2)))
     print('usunieot: %d' % (st - len(wordlist2)))
     return wordlist2
-
 
 
 if __name__ == '__main__':

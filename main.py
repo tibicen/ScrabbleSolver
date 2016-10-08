@@ -13,7 +13,7 @@ from solver import (getFrequencyDict, getWordScore, isValidW, letterValues,
                     loadWords, merge)
 
 __version__ = '0.5'
-DEBUG = True
+DEBUG = False
 PUNKTACJA = 'pl_punktacja.txt'
 DICTIONARY = 'pl_slownik.txt'
 LETTERS_DICT = {'a': 9, 'ą': 1, 'b': 2, 'c': 3, 'ć': 1, 'd': 3,
@@ -22,7 +22,7 @@ LETTERS_DICT = {'a': 9, 'ą': 1, 'b': 2, 'c': 3, 'ć': 1, 'd': 3,
                 'ń': 1, 'o': 6, 'ó': 1, 'p': 3, 'r': 4, 's': 4,
                 'ś': 1, 't': 3, 'u': 2, 'w': 4, 'y': 4, 'z': 5,
                 'ź': 1, 'ż': 1}
-LETTERS = ''.join([k*v for k, v in LETTERS_DICT.items()])
+LETTERS = ''.join([k * v for k, v in LETTERS_DICT.items()])
 
 
 Builder.load_string('''
@@ -130,7 +130,7 @@ class chooseWords(threading.Thread):
     def run(self):
         self.update_bar('reset')
         for nr, word in enumerate(self.wordlist):
-            if nr % 100 == 0:
+            if nr % 1000 == 0:
                 self.update_bar(len(self.wordlist))
             if isValidW(word, self.hand):
                 score = getWordScore(word, self.n, self.ltrVals)
@@ -145,7 +145,6 @@ class chooseWords(threading.Thread):
             self.opis.text = (
                 'Nie znaleziono odpowiednikow.\nMam za słaby słownik.')
         self.update_bar('full')
-        printDbg(self.bestWords)
 
 
 class RootWidget(BoxLayout):
@@ -156,12 +155,10 @@ class RootWidget(BoxLayout):
         self.BAZY = False
         self.wordlist = []
         self.ltrVals = {}
-        self.literki.text = 'zwierzę' if DEBUG else ''.join(
-            random.sample(LETTERS, 7))
+        self.literki.text = ''.join(random.sample(LETTERS, 7))
         self.bestWords = []
         self.prog.value = 0
         self.hand = 0
-        self.dump = None
 
     def onPress(self):
         if self.BAZY:
@@ -217,18 +214,13 @@ class RootWidget(BoxLayout):
         elif wordlistLen == 'reset':
             self.prog.value = 0
         else:
-            self.prog.value = self.prog.value + (100 / wordlistLen)
-            # printDbg('%.2f' % (self.prog.value))
+            self.prog.value = self.prog.value + (1000 / wordlistLen)
             # dumps weaker words
             best = self.bestWords[-10:]
             best = sorted(best, key=lambda x: x[1], reverse=True)
-            a = ''.join(['{:12}: {}\n'.format(x, y) for x, y in best])
-            if a != self.dump:
-                print(a)
-                print('_'*16)
-                self.dump = a
             for w in best:
-                wordsStr += '%s, %dpt\n' % (w[0], w[1])
+                wordsStr += '{0:>{2}}, {1:>4}pt\n'.format(
+                    w[0], w[1], len(best[0][0]))
             self.opis.text = 'Najodpowiedniejsze słowa to:\n\n' + wordsStr
 
 
