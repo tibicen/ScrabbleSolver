@@ -1,26 +1,28 @@
 # -*- coding: utf-8 -*-
 # from solver import *
-import threading
 import random
+import threading
 from functools import partial
+
 from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.lang import Builder
 from kivy.clock import Clock
+from kivy.lang import Builder
+from kivy.uix.boxlayout import BoxLayout
 
-from solver import loadWords, letterValues, getFrequencyDict, \
-    getWordScore, merge, isValidW
+from solver import (getFrequencyDict, getWordScore, isValidW, letterValues,
+                    loadWords, merge)
 
-__version__ = '0.4'
+__version__ = '0.5'
 DEBUG = True
 PUNKTACJA = 'pl_punktacja.txt'
 DICTIONARY = 'pl_slownik.txt'
-LETTERS = 'a' * 9 + 'ą' * 1 + 'b' * 2 + 'c' * 3 + 'ć' * 1 + 'd' * 3 + \
-          'e' * 7 + 'ę' * 1 + 'f' * 1 + 'g' * 2 + 'h' * 2 + 'i' * 8 + \
-          'j' * 2 + 'k' * 3 + 'l' * 3 + 'ł' * 2 + 'm' * 3 + 'n' * 5 + \
-          'ń' * 1 + 'o' * 6 + 'ó' * 1 + 'p' * 3 + 'r' * 4 + 's' * 4 + \
-          'ś' * 1 + 't' * 3 + 'u' * 2 + 'w' * 4 + 'y' * 4 + 'z' * 5 + \
-          'ź' * 1 + 'ż' * 1
+LETTERS_DICT = {'a': 9, 'ą': 1, 'b': 2, 'c': 3, 'ć': 1, 'd': 3,
+                'e': 7, 'ę': 1, 'f': 1, 'g': 2, 'h': 2, 'i': 8,
+                'j': 2, 'k': 3, 'l': 3, 'ł': 2, 'm': 3, 'n': 5,
+                'ń': 1, 'o': 6, 'ó': 1, 'p': 3, 'r': 4, 's': 4,
+                'ś': 1, 't': 3, 'u': 2, 'w': 4, 'y': 4, 'z': 5,
+                'ź': 1, 'ż': 1}
+LETTERS = ''.join([k*v for k, v in LETTERS_DICT.items()])
 
 
 Builder.load_string('''
@@ -107,9 +109,9 @@ Builder.load_string('''
 ''')
 
 
-def printDbg(str):
+def printDbg(*arg, **kwargs):
     if DEBUG:
-        print(str)
+        print(*arg, **kwargs)
 
 
 class chooseWords(threading.Thread):
@@ -126,7 +128,7 @@ class chooseWords(threading.Thread):
         self.update_bar = update_bar
 
     def run(self):
-        self.update_bar('Reset')
+        self.update_bar('reset')
         for nr, word in enumerate(self.wordlist):
             if nr % 100 == 0:
                 self.update_bar(len(self.wordlist))
@@ -135,15 +137,15 @@ class chooseWords(threading.Thread):
                 self.bestWords.append((word, score))
         wordsStr = ''
         if self.bestWords:
-            # printDbg(self.bestWords)
-            for w in reversed(self.bestWords[-7:]):
-                wordsStr += w[0] + ', ' + str(w[1]) + 'pt' '\n'
+            for w in reversed(self.bestWords[-10:]):
+                wordsStr += '{0}, {1}pt\n'.format(*w)
             self.opis.text = (
                 'Najodpowiedniejsze słowa to:\n\n' + wordsStr)
         else:
             self.opis.text = (
                 'Nie znaleziono odpowiednikow.\nMam za słaby słownik.')
-        self.update_bar('Full')
+        self.update_bar('full')
+        printDbg(self.bestWords)
 
 
 class RootWidget(BoxLayout):
@@ -154,10 +156,12 @@ class RootWidget(BoxLayout):
         self.BAZY = False
         self.wordlist = []
         self.ltrVals = {}
-        self.literki.text = ''.join(random.sample(LETTERS, 7))
+        self.literki.text = 'zwierzę' if DEBUG else ''.join(
+            random.sample(LETTERS, 7))
         self.bestWords = []
         self.prog.value = 0
         self.hand = 0
+        self.dump = None
 
     def onPress(self):
         if self.BAZY:
@@ -187,8 +191,6 @@ class RootWidget(BoxLayout):
             self.opis.text = 'Obliczanie... \n\nCzekaj'
             wordlists = self.wordlist[:lettersNr - 2]
             crpWordlist = list(merge(*wordlists))
-            printDbg('zwierzę' in crpWordlist)
-            printDbg(len(wordlists) + 2)
             # TODO implement thread search
             work = chooseWords(self, crpWordlist, lettersNr + 1,
                                lambda x: Clock.schedule_once(
@@ -200,7 +202,8 @@ class RootWidget(BoxLayout):
         self.ltrVals = letterValues(PUNKTACJA)
         self.wordlist = loadWords(DICTIONARY)
         self.BAZY = True
-        printDbg('imported %d words.' % len(list(merge(*self.wordlist))))
+        printDbg('imported {:d} words.'.format(
+            len(list(merge(*self.wordlist)))))
 
     def update_bar(self, wordlistLen, dt=None):
         '''
@@ -209,20 +212,24 @@ class RootWidget(BoxLayout):
              returns: (None) updated layout
         '''
         wordsStr = ''
-        if wordlistLen == 'Full':
+        if wordlistLen == 'full':
             self.prog.value = 1.0
-        elif wordlistLen == 'Reset':
+        elif wordlistLen == 'reset':
             self.prog.value = 0
         else:
             self.prog.value = self.prog.value + (100 / wordlistLen)
             # printDbg('%.2f' % (self.prog.value))
             # dumps weaker words
-            self.bestWords = self.bestWords[-15:]
-            self.bestWords = sorted(self.bestWords, key=lambda x: x[1])
-            for w in reversed(self.bestWords):
+            best = self.bestWords[-10:]
+            best = sorted(best, key=lambda x: x[1], reverse=True)
+            a = ''.join(['{:12}: {}\n'.format(x, y) for x, y in best])
+            if a != self.dump:
+                print(a)
+                print('_'*16)
+                self.dump = a
+            for w in best:
                 wordsStr += '%s, %dpt\n' % (w[0], w[1])
-            self.opis.text = \
-                'Najodpowiedniejsze słowa to:\n\n' + wordsStr
+            self.opis.text = 'Najodpowiedniejsze słowa to:\n\n' + wordsStr
 
 
 class ScrabbleSolver(App):

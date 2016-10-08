@@ -3,18 +3,19 @@ import random
 
 WORDLIST_FILENAME = "pl_slownik.txt"
 PUNKTACJA_FILENAME = "pl_punktacja.txt"
-LETTERS = 'a' * 9 + 'ą' * 1 + 'b' * 2 + 'c' * 3 + 'ć' * 1 + 'd' * 3 + \
-          'e' * 7 + 'ę' * 1 + 'f' * 1 + 'g' * 2 + 'h' * 2 + 'i' * 8 + \
-          'j' * 2 + 'k' * 3 + 'l' * 3 + 'ł' * 2 + 'm' * 3 + 'n' * 5 + \
-          'ń' * 1 + 'o' * 6 + 'ó' * 1 + 'p' * 3 + 'r' * 4 + 's' * 4 + \
-          'ś' * 1 + 't' * 3 + 'u' * 2 + 'w' * 4 + 'y' * 4 + 'z' * 5 + \
-          'ź' * 1 + 'ż' * 1
 LETTERS_DICT = {'a': 9, 'ą': 1, 'b': 2, 'c': 3, 'ć': 1, 'd': 3,
                 'e': 7, 'ę': 1, 'f': 1, 'g': 2, 'h': 2, 'i': 8,
                 'j': 2, 'k': 3, 'l': 3, 'ł': 2, 'm': 3, 'n': 5,
                 'ń': 1, 'o': 6, 'ó': 1, 'p': 3, 'r': 4, 's': 4,
                 'ś': 1, 't': 3, 'u': 2, 'w': 4, 'y': 4, 'z': 5,
                 'ź': 1, 'ż': 1}
+LETTERS = ''.join([k*v for k,v in LETTERS_DICT.items()])
+
+def merge(*iters):
+    result = []
+    for i in iters:
+        result += i
+    return result
 
 
 def loadWords(filename):
@@ -58,6 +59,8 @@ def loadWords(filename):
 #     return wordList
 
 
+
+
 def letterValues(filename):
     '''
     returns: dict with letter Values for Scrabble
@@ -71,6 +74,7 @@ def letterValues(filename):
         for l in Linenr[1].split(','):
             ltrVals[l] = int(Linenr[0])
     return ltrVals
+
 
 
 def getFrequencyDict(sequence):
@@ -113,19 +117,6 @@ def getWordScore(word, n, scrabble_letter_values):
     return score
 
 
-def calculateHandlen(hand):
-    """
-    Returns the length (number of letters) in the current hand.
-
-    hand: dictionary (string-> int)
-    returns: integer
-    """
-    result = 0
-    for x, y in hand.items():
-        result += y
-    return result
-
-
 def isValidW(word, hand):
     """
     Returns True if word is in the wordList and is entirely
@@ -144,39 +135,6 @@ def isValidW(word, hand):
     return True
 
 
-def compChooseWord(hand, wordList, n, scrabble_letter_values):
-    """
-    Given a hand and a wordList, find the word that gives
-    the maximum value score, and return it.
-
-    This word should be calculated by considering all the words
-    in the wordList.
-
-    If no words in the wordList can be made from the hand, return None.
-
-    hand: dictionary (string -> int)
-    wordList: list (string)
-    n: integer (HAND_SIZE; i.e., hand size required for additional points)
-
-    returns: string or None
-    """
-    maxScore = 0
-    bestWord = None
-    bestWords = []
-    for word in wordList:
-        # If you can construct the word from your hand
-        # (hint: you can use isValidWord, or - since you don't really need to
-        # test if the word is in the wordList - you can make a similar function
-        # that omits that test)
-        if isValidW(word, hand):
-            score = getWordScore(word, n, scrabble_letter_values)
-            bestWords.append((word, score))
-            if score >= maxScore:
-                maxScore = score
-                bestWord = word
-                # bestWords.append((word, maxScore))
-    return bestWords
-
 
 def cleanWordList(wordlist):
     st = len(wordlist)
@@ -185,7 +143,9 @@ def cleanWordList(wordlist):
     errors = []
     for nr, w in enumerate(wordlist):
         if nr % int(len(wordlist) / 10000) == 0:
-            print('\r%.2f%%' % (100 * nr / len(wordlist)), end='')
+            pass
+            print('\r{:.2f}%'.format(100 * nr / len(wordlist)), end='')
+            # print('\r%.2f%%' % (100 * nr / len(wordlist)), end='')
         boo = True
         if len(w) < 3:
             boo = False
@@ -209,7 +169,8 @@ def cleanWordList(wordlist):
     print(len(wordlist))
     for nr, w in enumerate(wordlist):
         if nr % int(len(wordlist) / 10000) == 0:
-            print('\r%.2f%%' % (100 * nr / len(wordlist)), end='')
+            print('\r{:.2f}%'.format(100 * nr / len(wordlist)), end='')
+            # print('\r%.2f%%' % (100 * nr / len(wordlist)), end='')
         if w not in wordlist2[-1000:]:
             wordlist2.append(w)
         else:
@@ -219,21 +180,6 @@ def cleanWordList(wordlist):
     print('usunieot: %d' % (st - len(wordlist2)))
     return wordlist2
 
-
-def merge(*iters):
-    result = []
-    for i in iters:
-        result += i
-    return result
-
-
-def game(wordlist, ltrVals):
-    wyraz = random.sample(LETTERS, 7)
-    print([x for x in wyraz])
-    hand = getFrequencyDict(wyraz)
-    n = len(wyraz)
-    words = compChooseWord(hand, wordlist, n, ltrVals)
-    print(words)
 
 
 if __name__ == '__main__':
@@ -259,6 +205,6 @@ if __name__ == '__main__':
     #             break
     #     if boo:
     #         swordlist.append(word)
-    with open('slowa-scrabble.txt', 'w', encoding='utf-8') as newFile:
-        for l in wordlist2:
-            newFile.write(','.join(l) + '\n')
+    # with open('slowa-scrabble.txt', 'w', encoding='utf-8') as newFile:
+    #     for l in wordlist2:
+    #         newFile.write(','.join(l) + '\n')
