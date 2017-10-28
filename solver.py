@@ -19,6 +19,8 @@ def merge(*iters):
     return result
 
 
+
+
 def loadWords(filename):
     """
     Returns a list of valid words. Words are strings of lowercase letters.

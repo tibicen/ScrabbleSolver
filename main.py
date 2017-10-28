@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# from solver import *
 import random
 import threading
 from functools import partial
